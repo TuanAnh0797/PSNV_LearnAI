@@ -2,70 +2,79 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 
-class PolynomialRegression:
+class PolynomialRegressionAdam:
     """
-    Thuật toán Polynomial Regression cài đặt từ đầu
+    Thuật toán Polynomial Regression cài đặt với Adam optimizer
     """
-
-
-        
-
-    def __init__(self, degree=2, learning_rate=0.01, n_iterations=2000, lambda_reg=0.01):
-    #def __init__(self, degree=2, learning_rate=0.01, n_iterations=3000):
-        self.lambda_reg = lambda_reg
+    def __init__(self, degree=2, learning_rate=0.01, n_iterations=2000, 
+                 beta1=0.9, beta2=0.999, epsilon=1e-8, lambda_reg=0.01):
         self.degree = degree
         self.learning_rate = learning_rate
         self.n_iterations = n_iterations
+        self.beta1 = beta1  # Hệ số momentum
+        self.beta2 = beta2  # Hệ số RMSprop
+        self.epsilon = epsilon  # Để tránh chia cho 0
+        self.lambda_reg = lambda_reg  # Hệ số regularization
         self.weights = None
         self.bias = None
         self.cost_history = []
     
-    # def _transform_features(self, X):
-    #     """Biến đổi đặc trưng ban đầu thành dạng đa thức bậc degree"""
-    #     n_samples = X.shape[0]
-    #     X_poly = np.ones((n_samples, self.degree + 1))
-        
-    #     for i in range(1, self.degree + 1):
-    #         X_poly[:, i] = X[:, 0] ** i
-            
-    #     return X_poly
-    # Thêm vào lớp PolynomialRegression
     def _transform_features(self, X):
+        """Biến đổi đặc trưng ban đầu thành dạng đa thức bậc degree và chuẩn hóa"""
         n_samples = X.shape[0]
-    # Chuẩn hóa X trước khi tính toán
-        X_normalized = (X - X.mean()) / X.std()
+        
+        # Chuẩn hóa X để tránh các giá trị quá lớn khi tính x^n
+        X_normalized = (X - np.mean(X, axis=0)) / (np.std(X, axis=0) + self.epsilon)
+        
         X_poly = np.ones((n_samples, self.degree + 1))
-    
+        
         for i in range(1, self.degree + 1):
             X_poly[:, i] = X_normalized[:, 0] ** i
-        
+            
         return X_poly
     
-    
     def fit(self, X, y):
-        """Huấn luyện mô hình với dữ liệu X và nhãn y"""
-        # Biến đổi đặc trưng thành dạng đa thức
+        """Huấn luyện mô hình với dữ liệu X và nhãn y sử dụng Adam optimizer"""
+        # Biến đổi đặc trưng thành dạng đa thức và chuẩn hóa
         X_poly = self._transform_features(X)
         
         # Khởi tạo tham số
         n_samples, n_features = X_poly.shape
-        #self.weights = np.zeros(n_features)
-        self.weights = np.random.randn(n_features) * 0.05
+        self.weights = np.random.randn(n_features) * 0.01  # Khởi tạo ngẫu nhiên nhỏ
         self.bias = 0
         
-        # Gradient Descent
+        # Khởi tạo các biến cho Adam optimizer
+        m_w = np.zeros_like(self.weights)  # Momentum cho weights
+        v_w = np.zeros_like(self.weights)  # Velocity cho weights
+        m_b = 0  # Momentum cho bias
+        v_b = 0  # Velocity cho bias
+        
+        # Gradient Descent với Adam optimizer
         for i in range(self.n_iterations):
             # Dự đoán
             y_predicted = self._predict(X_poly)
             
-            # Tính đạo hàm
-            #dw = (1/n_samples) * np.dot(X_poly.T, (y_predicted - y))
+            # Tính gradient với L2 regularization
             dw = (1/n_samples) * np.dot(X_poly.T, (y_predicted - y)) + (self.lambda_reg * self.weights)
             db = (1/n_samples) * np.sum(y_predicted - y)
             
+            # Cập nhật biased first moment estimate
+            m_w = self.beta1 * m_w + (1 - self.beta1) * dw
+            m_b = self.beta1 * m_b + (1 - self.beta1) * db
+            
+            # Cập nhật biased second raw moment estimate
+            v_w = self.beta2 * v_w + (1 - self.beta2) * dw**2
+            v_b = self.beta2 * v_b + (1 - self.beta2) * db**2
+            
+            # Hiệu chỉnh bias (bias correction)
+            m_w_corrected = m_w / (1 - self.beta1**(i+1))
+            m_b_corrected = m_b / (1 - self.beta1**(i+1))
+            v_w_corrected = v_w / (1 - self.beta2**(i+1))
+            v_b_corrected = v_b / (1 - self.beta2**(i+1))
+            
             # Cập nhật tham số
-            self.weights -= self.learning_rate * dw
-            self.bias -= self.learning_rate * db
+            self.weights -= self.learning_rate * m_w_corrected / (np.sqrt(v_w_corrected) + self.epsilon)
+            self.bias -= self.learning_rate * m_b_corrected / (np.sqrt(v_b_corrected) + self.epsilon)
             
             # Tính cost function và lưu lại
             cost = self._compute_cost(y, y_predicted)
@@ -74,7 +83,8 @@ class PolynomialRegression:
             # In tiến trình (tùy chọn)
             if (i+1) % 100 == 0:
                 print(f'Iteration: {i+1}, Cost: {cost}')
-            # Trong vòng lặp Gradient Descent
+                
+            # Kiểm tra điều kiện dừng sớm
             if i > 0 and abs(cost - self.cost_history[-2]) < 1e-6:
                 print(f"Đã hội tụ sau {i+1} vòng lặp")
                 break
@@ -89,10 +99,12 @@ class PolynomialRegression:
         return self._predict(X_poly)
     
     def _compute_cost(self, y_true, y_predicted):
-        """Tính hàm mất mát MSE"""
+        """Tính hàm mất mát MSE với L2 regularization"""
         n_samples = len(y_true)
-        cost = (1/n_samples) * np.sum((y_true - y_predicted)**2)
-        return cost
+        mse = (1/n_samples) * np.sum((y_true - y_predicted)**2)
+        # Thêm L2 regularization
+        l2_reg = (self.lambda_reg / (2 * n_samples)) * np.sum(self.weights**2)
+        return mse + l2_reg
     
     def score(self, X, y):
         """Tính R² score"""
@@ -112,14 +124,24 @@ class PolynomialRegression:
         return equation
 
 # Hàm tạo dữ liệu mẫu phi tuyến
-def generate_nonlinear_data(n_samples=100, noise=1.0):
+def generate_nonlinear_data(n_samples=100, noise=1.0, degree=4):
     """Tạo dữ liệu mẫu phi tuyến với nhiễu"""
     X = np.random.rand(n_samples, 1) * 10 - 5  # Dữ liệu từ -5 đến 5
-    y = 0.5 * X.squeeze()**3 - 2 * X.squeeze()**2 + 3 * X.squeeze() + 2 + np.random.randn(n_samples) * noise
+    
+    # Tạo dữ liệu theo đa thức bậc cao
+    coeffs = np.random.randn(degree + 1) * 0.5
+    y = np.zeros(n_samples)
+    
+    for i, coeff in enumerate(coeffs):
+        y += coeff * X.squeeze()**i
+    
+    # Thêm nhiễu
+    y += np.random.randn(n_samples) * noise
+    
     return X, y
 
 # Hàm vẽ kết quả
-def plot_polynomial_results(X, y, model, title="Polynomial Regression"):
+def plot_polynomial_results(X, y, model, title="Polynomial Regression with Adam"):
     """Vẽ dữ liệu và đường hồi quy đa thức"""
     plt.figure(figsize=(10, 6))
     
@@ -141,7 +163,7 @@ def plot_polynomial_results(X, y, model, title="Polynomial Regression"):
     plt.grid(True, alpha=0.3)
     
     equation = model.get_polynomial_equation()
-    plt.annotate(f'y = {equation}', xy=(0.05, 0.95), xycoords='axes fraction', fontsize=12)
+    plt.annotate(f'y = {equation}', xy=(0.05, 0.95), xycoords='axes fraction', fontsize=10)
     
     plt.show()
 
@@ -158,17 +180,27 @@ def plot_learning_curve(model):
 
 # DEMO: Sử dụng mô hình
 if __name__ == "__main__":
-    # Tạo dữ liệu
-    X, y = generate_nonlinear_data(n_samples=100, noise=5.0)
+    # Tạo dữ liệu đa thức bậc cao
+    true_degree = 6
+    X, y = generate_nonlinear_data(n_samples=150, noise=2.0, degree=true_degree)
     
     start_time = time.time()
 
-    # Huấn luyện mô hình
-    model = PolynomialRegression(degree=8, learning_rate=0.0001, n_iterations=2000)
+    # Huấn luyện mô hình với bậc 8 (cao hơn dữ liệu gốc)
+    model_degree = 8
+    model = PolynomialRegressionAdam(
+        degree=model_degree, 
+        learning_rate=0.01, 
+        n_iterations=3000,
+        beta1=0.9,
+        beta2=0.999,
+        lambda_reg=0.01
+    )
     model.fit(X, y)
     
     # Đánh giá mô hình
     r2_score = model.score(X, y)
+    print(f"Mô hình bậc {model_degree} cho dữ liệu bậc {true_degree}")
     print(f"Hệ số R²: {r2_score:.4f}")
     print(f"Phương trình: y = {model.get_polynomial_equation()}")
 
@@ -177,13 +209,13 @@ if __name__ == "__main__":
     print(f"Thời gian thực thi: {execution_time} giây")
 
     # Vẽ kết quả
-    plot_polynomial_results(X, y, model, f"Polynomial Regression (bậc {model.degree})")
+    plot_polynomial_results(X, y, model, f"Polynomial Regression với Adam (bậc {model_degree})")
     plot_learning_curve(model)
 
 # Hàm so sánh các mô hình với các bậc khác nhau
-def compare_polynomial_models(X, y, degrees=[1, 2, 3, 4], learning_rate=0.001, n_iterations=3000):
+def compare_polynomial_models(X, y, degrees=[1, 4, 6, 8], learning_rate=0.01, n_iterations=2000):
     """So sánh các mô hình đa thức với các bậc khác nhau"""
-    plt.figure(figsize=(12, 10))
+    plt.figure(figsize=(15, 10))
     
     # Tạo lưới con
     rows = len(degrees) // 2 + len(degrees) % 2
@@ -191,7 +223,12 @@ def compare_polynomial_models(X, y, degrees=[1, 2, 3, 4], learning_rate=0.001, n
     
     for i, degree in enumerate(degrees):
         # Huấn luyện mô hình
-        model = PolynomialRegression(degree=degree, learning_rate=learning_rate, n_iterations=n_iterations)
+        model = PolynomialRegressionAdam(
+            degree=degree, 
+            learning_rate=learning_rate, 
+            n_iterations=n_iterations,
+            lambda_reg=0.01
+        )
         model.fit(X, y)
         
         # Đánh giá mô hình
@@ -221,3 +258,19 @@ def compare_polynomial_models(X, y, degrees=[1, 2, 3, 4], learning_rate=0.001, n
     
     plt.tight_layout()
     plt.show()
+
+# Demo so sánh các mô hình
+def run_comparison_demo():
+    # Tạo dữ liệu
+    true_degree = 5
+    X, y = generate_nonlinear_data(n_samples=150, noise=2.0, degree=true_degree)
+    
+    # So sánh các mô hình với các bậc khác nhau
+    compare_polynomial_models(
+        X, y, 
+        degrees=[1, 3, 5, 8], 
+        learning_rate=0.01, 
+        n_iterations=2000
+    )
+    
+    print(f"Dữ liệu gốc được tạo với đa thức bậc {true_degree}")
