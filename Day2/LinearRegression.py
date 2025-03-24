@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
+import pandas as pd
+import time
 class LinearRegression:
     """
     Thuật toán Linear Regression cài đặt từ đầu
@@ -107,10 +108,10 @@ def plot_learning_curve(model):
 # DEMO: Sử dụng mô hình
 if __name__ == "__main__":
     # Tạo dữ liệu
-    X, y = generate_data(n_samples=100, noise=1.5)
-    
+    X, y = generate_data(n_samples=10, noise=1.5)
+    start_time = time.time()
     # Huấn luyện mô hình
-    model = LinearRegression(learning_rate=0.01, n_iterations=1000)
+    model = LinearRegression(learning_rate=0.02, n_iterations=1000)
     model.fit(X, y)
     
     # Đánh giá mô hình
@@ -119,7 +120,36 @@ if __name__ == "__main__":
     print(f"Hệ số w: {model.weights[0]:.4f}")
     print(f"Hệ số b: {model.bias:.4f}")
     
+    end_time = time.time()  # Lấy thời gian kết thúc
+    execution_time = end_time - start_time  # Thời gian thực thi
+    print(f"Thời gian thực thi: {execution_time} giây")
     # Vẽ kết quả
     plot_results(X, y, model)
     plot_learning_curve(model)
 
+
+    x_value = model.learning_rate
+    y_value = execution_time
+
+    data = pd.DataFrame({'x': [x_value], 'y': [y_value]})
+
+    # Ghi vào file CSV (append nếu muốn ghi vào cuối file mà không ghi đè)
+    data.to_csv('output.csv', mode='a', header=False, index=False)   
+
+    # Đọc dữ liệu từ file CSV
+    data = pd.read_csv('output.csv')
+
+    # Kiểm tra dữ liệu đã được đọc thành công
+    print(data)
+
+    # Vẽ biểu đồ
+    plt.plot(data['x'], data['y'], marker='o', linestyle='-', color='b', label='y = f(x)')
+
+    # Thêm tiêu đề và nhãn cho trục
+    plt.title('Biểu đồ dữ liệu Learninng_rate và Time')
+    plt.xlabel('Learninng_rate')
+    plt.ylabel('Time')
+
+    # Hiển thị biểu đồ
+    plt.legend()
+    plt.show() 
