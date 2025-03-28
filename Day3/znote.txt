@@ -1,0 +1,4 @@
+OpenCV:
+Làm mờ => phân vùng
+Edge => tìm đặc trưng
+Extracting Key Points => những đặc trưng không bị thay đổi khi xoay,scale.

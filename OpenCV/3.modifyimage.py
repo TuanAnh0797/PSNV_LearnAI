@@ -8,8 +8,9 @@ cv2.imshow("myimg",imgblack)
 #Resize vector
 imgresiz = cv2.resize(imgori,dsize=None,fx=0.5, fy=0.5)
 
-print(imgresiz)
-
 cv2.imshow("myimg2",imgresiz)
+
+
+
 cv2.waitKey()
 cv2.destroyAllWindows()

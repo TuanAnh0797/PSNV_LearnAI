@@ -111,7 +111,7 @@ if __name__ == "__main__":
     X, y = generate_data(n_samples=10, noise=1.5)
     start_time = time.time()
     # Huấn luyện mô hình
-    model = LinearRegression(learning_rate=0.02, n_iterations=1000)
+    model = LinearRegression(learning_rate=0.03, n_iterations=1000)
     model.fit(X, y)
     
     # Đánh giá mô hình
@@ -132,7 +132,6 @@ if __name__ == "__main__":
     y_value = execution_time
 
     data = pd.DataFrame({'x': [x_value], 'y': [y_value]})
-
     # Ghi vào file CSV (append nếu muốn ghi vào cuối file mà không ghi đè)
     data.to_csv('output.csv', mode='a', header=False, index=False)   
 

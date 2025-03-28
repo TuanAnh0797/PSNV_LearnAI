@@ -1,0 +1,31 @@
+Điểm khác biệt chính so với Linear Regression:
+
+Thêm tham số degree để xác định bậc của đa thức
+Phương thức _transform_features() để biến đổi đặc trưng ban đầu thành các đặc trưng đa thức (x, x², x³,...)
+Phương thức get_polynomial_equation() để hiển thị phương trình đa thức
+
+
+Tiến trình Gradient Descent vẫn giữ nguyên:
+
+Tính dự đoán
+Tính gradient
+Cập nhật tham số
+Tính hàm mất mát
+
+
+Thêm các hàm tiện ích:
+
+generate_nonlinear_data(): Tạo dữ liệu phi tuyến cho demo
+plot_polynomial_results(): Vẽ dữ liệu và đường cong đa thức
+compare_polynomial_models(): So sánh mô hình đa thức với các bậc khác nhau
+
+
+Cách sử dụng:
+pythonCopy# Khởi tạo mô hình với bậc 3
+model = PolynomialRegression(degree=3, learning_rate=0.001, n_iterations=2000)
+
+# Huấn luyện mô hình
+model.fit(X, y)
+
+# Dự đoán
+y_pred = model.predict(X_new)

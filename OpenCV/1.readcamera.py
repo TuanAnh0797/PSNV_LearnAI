@@ -3,6 +3,7 @@ import cv2
 # cv2.imshow("anh",a)
 # cv2.waitKey()
 # cv2.destroyAllWindows()
+
 #mở
 cam = cv2.VideoCapture(0)
 #Đọc

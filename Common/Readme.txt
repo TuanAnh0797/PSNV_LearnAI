@@ -1,5 +1,5 @@
 https://drive.google.com/drive/folders/18F796FsQsxvECG9pRenl_WJYNnMDXo3v
-
+https://docs.opencv.org/4.x/d6/d00/tutorial_py_root.html
 
 Cài virtualenv
 pip install virtualenv

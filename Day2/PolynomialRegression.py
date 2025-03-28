@@ -6,10 +6,6 @@ class PolynomialRegression:
     """
     Thuật toán Polynomial Regression cài đặt từ đầu
     """
-
-
-        
-
     def __init__(self, degree=2, learning_rate=0.01, n_iterations=2000, lambda_reg=0.01):
     #def __init__(self, degree=2, learning_rate=0.01, n_iterations=3000):
         self.lambda_reg = lambda_reg
@@ -49,8 +45,8 @@ class PolynomialRegression:
         
         # Khởi tạo tham số
         n_samples, n_features = X_poly.shape
-        #self.weights = np.zeros(n_features)
-        self.weights = np.random.randn(n_features) * 0.05
+        self.weights = np.zeros(n_features)
+        #self.weights = np.random.randn(n_features) * 0.05
         self.bias = 0
         
         # Gradient Descent
@@ -164,7 +160,7 @@ if __name__ == "__main__":
     start_time = time.time()
 
     # Huấn luyện mô hình
-    model = PolynomialRegression(degree=8, learning_rate=0.0001, n_iterations=2000)
+    model = PolynomialRegression(degree=10, learning_rate=0.0001, n_iterations=2000)
     model.fit(X, y)
     
     # Đánh giá mô hình
