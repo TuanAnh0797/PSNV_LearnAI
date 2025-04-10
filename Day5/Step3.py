@@ -2,12 +2,12 @@ import cv2
 import numpy as np
 import joblib
 
-model = joblib.load("face_classifier.pkl")
+model = joblib.load(r"C:\Users\Administrator\Desktop\StudyAI\Day5\\"+"face_classifier.pkl")
 
 min_YCrCb = np.array([0,133,77],np.uint8)
 max_YCrCb = np.array([235,173,127],np.uint8)
 
-cam = cv2.VideoCapture(0)
+cam = cv2.VideoCapture(1)
 
 while True:
     ret, frame = cam.read()
@@ -31,9 +31,9 @@ while True:
             if prediction == 1:
                 label = "Face"
                 color = (0, 255, 0)
-            else:
-                label = "Not face"
-                color = (0, 0, 255)
+            # else:
+            #     label = "Not face"
+            #     color = (0, 0, 255)
 
             cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
             cv2.putText(frame, label, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)

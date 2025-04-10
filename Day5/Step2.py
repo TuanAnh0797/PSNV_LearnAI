@@ -18,5 +18,5 @@ y_pred = model.predict(X_test)
 print(classification_report(y_test, y_pred))
 
 # Lưu mô hình
-joblib.dump(model, "face_classifier.pkl")
+joblib.dump(model,r"C:\Users\Administrator\Desktop\StudyAI\Day5\\"+"face_classifier.pkl")
 print("✅ Đã lưu mô hình vào face_classifier.pkl")

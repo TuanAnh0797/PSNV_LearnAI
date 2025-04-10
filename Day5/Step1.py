@@ -28,7 +28,7 @@ def extract_features_from_image(image_path, label):
 
 data = []
 
-for folder, label in [(r"C:\Users\70P7970\Desktop\PSNV_LearnAI\PSNV_LearnAI\Day5\faces", 1), (r"C:\Users\70P7970\Desktop\PSNV_LearnAI\PSNV_LearnAI\Day5\non_faces", 0)]:
+for folder, label in [(r"C:\Users\Administrator\Desktop\StudyAI\Day5\faces", 1), (r"C:\Users\Administrator\Desktop\StudyAI\Day5\non_faces", 0)]:
     for filename in os.listdir(folder):
         path = os.path.join(folder, filename)
         features = extract_features_from_image(path, label)
