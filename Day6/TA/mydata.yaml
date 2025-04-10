@@ -1,0 +1,7 @@
+train: datasets/mydata/images/train
+val: datasets/mydata/images/val
+nc: 1  # số lượng class
+names: ['PDA_TuanAnh']  # tên các clas
+
+
+#python train.py --img 640 --batch 16 --epochs 100 --data mydata.yaml --cfg models/yolov5s.yaml --weights yolov5s.pt --name my_custom_model
